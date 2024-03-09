@@ -1,0 +1,28 @@
+version: '3'
+services:
+  psql16:  
+    image: postgres:16
+    restart: unless-stopped  
+    hostname: "recruite-psql"
+    container_name: ${CONTAINER_NAME}
+    environment:
+      - POSTGRES_PASSWORD=--usr-01-EdGE2024
+    volumes:
+       - /datadrive/logs/psql-16:/var/log/postgresql
+       - /datadrive/configs/psql-16/postgresql.conf:/etc/postgresql/postgresql.conf  
+       - /datadrive/data/psql-16:/var/lib/postgresql/data
+    network_mode: "host"
+
+
+
+
+
+
+
+
+
+
+
+
+
+

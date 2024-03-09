@@ -1,0 +1,45 @@
+---
+- name: Install and configure rabbitmq on rabbitmq machines
+  hosts: localhost
+  become: true
+  tasks:
+    - name: Create directories for rabbitmq on remote machine
+      file:
+        path: /datadrive/{{ item }}
+        state: directory
+        mode: '0755'
+      loop:
+        - data/rabbitmq
+        - logs/rabbitmq
+
+    - name: Copy entire folder to remote machine
+      synchronize:
+        src: /home/dupdevops/ansible-docker-compose/rabbitmq
+        dest: /datadrive/
+      delegate_to: localhost
+
+    - name: Change ownership for directories
+      file:
+        path: "{{ item }}"
+        recurse: yes
+        owner: 999
+        group: 999
+      loop:
+        - /datadrive/data/rabbitmq/
+        - /datadrive/logs/rabbitmq/
+    
+    - name: Check if Docker Compose is installed
+      stat:
+        path: /usr/local/bin/docker-compose
+      register: docker_compose_installed
+    
+    - name: Install Docker Compose
+      shell: >
+        curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose &&
+        chmod +x /usr/local/bin/docker-compose
+      args:
+        creates: /usr/local/bin/docker-compose
+      when: docker_compose_installed.stat.exists == False
+
+    - name: Run Docker Compose for rabbitmq
+      command: docker-compose -f /datadrive/rabbitmq/docker-compose.yml up -d

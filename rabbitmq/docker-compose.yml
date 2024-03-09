@@ -1,0 +1,14 @@
+version: '3.9'
+services:
+    rmq-01:
+        container_name: rabbitmq-01
+        image: 'rabbitmq:3.12-management'
+        restart: 'unless-stopped'
+        hostname: "mobility-rmq"
+        volumes:
+          - "/datadrive/data/rabbitmq:/var/lib/rabbitmq"
+          - "/datadrive/logs/rabbitmq:/var/log/rabbitmq"
+        ports:
+          - 15672:15672
+          - 5672:5672
+          - 25672:25672

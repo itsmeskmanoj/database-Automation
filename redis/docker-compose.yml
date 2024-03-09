@@ -1,0 +1,12 @@
+version: '3.9'
+services:
+    redis4:
+      container_name: redis-01
+      image: 'redis:6.0'
+      restart: 'unless-stopped'
+      hostname: 'mobility-redis'
+      volumes:
+      - "/datadrive/data/redis:/data"
+      - "/datadrive/logs/redis/:/var/log/redis/"
+      ports:
+        - 6380:6379

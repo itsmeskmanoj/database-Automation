@@ -1,0 +1,52 @@
+---
+- name: Install and configure psql-16 on psql-16 machines
+  hosts: localhost 
+  become: true
+  tasks:
+    - name: Create directories for psql-16 on remote machine
+      file:
+        path: /datadrive/{{ item }}
+        state: directory
+        mode: '0755'
+      loop:
+        - data/psql-16
+        - configs/psql-16
+        - logs/psql-16
+
+ #   - name: Copy entire folder to remote machine
+ #     synchronize:
+ #       src: /home/dupdevops/ansible-docker-compose/psql16
+ #       dest: /datadrive/
+ #     delegate_to: localhost
+ #
+ #   - name: Move configuration files to config folder
+ #     shell: mv /datadrive/psql16/configs/* /datadrive/configs/psql-16/
+ #     args:
+ #       warn: false
+ #
+    - name: Change ownership for directories
+      file:
+        path: "{{ item }}"
+        recurse: yes
+        owner: 999
+        group: 999
+      loop:
+        - /datadrive/configs/psql-16/
+        - /datadrive/data/psql-16/
+        - /datadrive/logs/psql-16/
+    - name: Check if Docker Compose is installed
+      stat:
+        path: /usr/local/bin/docker-compose
+      register: docker_compose_installed
+    
+    - name: Install Docker Compose
+      shell: >
+        curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose &&
+        chmod +x /usr/local/bin/docker-compose
+      args:
+       creates: /usr/local/bin/docker-compose
+      when: docker_compose_installed.stat.exists == False
+    
+
+    - name: Run Docker Compose for psql-16
+      command: docker-compose -f /home/avr/database_yml/ansible-docker-compose/psql16/docker-compose.yml up -d

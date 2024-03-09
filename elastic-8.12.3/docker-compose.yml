@@ -1,0 +1,19 @@
+version: '3.9'
+services:
+  es01:
+    image: elasticsearch:${ELASTICSEARCH_VERSION}
+    container_name: ${CONTAINER_NAME}
+    restart: unless-stopped  
+    hostname: "mobility-elastic"
+    environment:
+      - "ES_JAVA_OPTS=-Xms24g -Xmx24g"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    network_mode: host
+    volumes:
+      - /datadrive/backing-services/elasticsearch/plugins:/usr/share/elasticsearch/plugins
+      - /datadrive/data/elasticsearch/:/usr/share/elasticsearch/data
+      - /datadrive/configs/elasticsearch:/usr/share/elasticsearch/config
+      - /datadrive/logs/elasticsearch:/usr/share/elasticsearch/logs

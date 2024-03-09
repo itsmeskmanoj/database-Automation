@@ -1,0 +1,41 @@
+# ********************************************************************
+# *  ___    _  ___ ___   _  _     _                  _
+# * | __|__| |/ __| __| | \| |___| |___ __ _____ _ _| |__ ___
+# * | _|/ _` | (_ | _|  | .` / -_)  _\ V  V / _ \ '_| / /(_-<
+# * |___\__,_|\___|___| |_|\_\___|\__|\_/\_/\___/_| |_\_\/__/
+# *
+# ********************************************************************
+
+path:
+  data: /usr/share/elasticsearch/data
+  logs: /usr/share/elasticsearch/logs
+
+cluster:
+  name: 'mobility-prod-es8-cluster-01'
+  initial_master_nodes:
+    - 10.3.1.10
+
+discovery.seed_hosts:
+  - 10.3.1.10
+  - 10.3.1.11
+  - 10.3.1.12
+node:
+  name: 'mobility-prod-es8-node-01'
+
+network:
+  host: 0.0.0.0
+
+#http:
+#  port: 8200
+
+#transport:
+#    port: 8300
+
+#bootstrap:
+#  memory_lock: true
+
+indices.query.bool.max_clause_count: 8192
+
+#xpack.security.transport.ssl.enabled: true
+
+xpack.security.enabled: false

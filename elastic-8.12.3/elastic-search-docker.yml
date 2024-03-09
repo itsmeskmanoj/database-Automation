@@ -1,0 +1,78 @@
+---
+- name: Install and configure Elasticsearch on Elasticsearch machines
+  hosts: es
+  become: true
+  tasks:
+    - name: Copy limits configuration file to /etc/security/limits.d/
+      copy:
+        src:  /home/dupdevops/ansible-docker-compose/elastic-8.12.3/config/47-dup-elsearch.conf
+        dest: /etc/security/limits.d/
+        owner: root
+        group: root
+        mode: '0644'
+
+    - name: Copy sysctl configuration file to /etc/sysctl.d/
+      copy:
+        src: /home/dupdevops/ansible-docker-compose/elastic-8.12.3/config/77-dup-elsearch.conf
+        dest: /etc/sysctl.d/
+        owner: root
+        group: root
+        mode: '0644'
+    - name: Create directories for Elasticsearch on remote machine
+      file:
+        path: /datadrive/{{ item }}
+        state: directory
+        mode: '0755'
+      loop:
+        - backing-services/elasticsearch/plugins
+        - data/elasticsearch
+        - configs/elasticsearch
+        - logs/elasticsearch
+
+    - name: Copy entire folder to remote machine
+      synchronize:
+        src:  /home/dupdevops/ansible-docker-compose/elastic-8.12.3
+        dest: /datadrive/
+      delegate_to: localhost
+
+    - name: Move configuration files to config folder
+      shell: mv /datadrive/elastic-8.12.3/config/* /datadrive/configs/elasticsearch/
+      args:
+        warn: false
+
+    - name: Change ownership for directories
+      file:
+        path: "{{ item }}"
+        recurse: yes
+        owner: 1000
+        group: 1000
+      loop:
+        - /datadrive/backing-services/elasticsearch/
+        - /datadrive/configs/elasticsearch/
+        - /datadrive/data/elasticsearch/
+        - /datadrive/logs/elasticsearch/
+    - name: Check if Docker Compose is installed
+      stat:
+        path: /usr/local/bin/docker-compose
+      register: docker_compose_installed
+    
+    - name: Install Docker Compose
+      shell: >
+        curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose &&
+        chmod +x /usr/local/bin/docker-compose
+      args:
+        creates: /usr/local/bin/docker-compose
+      when: docker_compose_installed.stat.exists == False
+    
+    - name: Run Docker Compose for Elasticsearch
+      command: docker-compose -f /datadrive/elastic-8.12.3/docker-compose.yml up -d
+  handlers:
+    - name: Reload limits configuration
+      systemd:
+        state: restarted
+
+    - name: Reload sysctl configuration
+      command: sysctl --system
+
+    - name: Reboot the system
+      reboot: 
